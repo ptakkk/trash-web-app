@@ -1,22 +1,7 @@
-//wyswietlanie ulic w zaleznosci ile dni do wywozki, np 3dni do wywozki kolor zielony, 2dni zolty, 1dzien czerwony
-//panel ladniejszy zrobic, wysuwany z boku moze
-//autodopasowanie w pasku wyszukiwania
-//focus na dana ulice przy wyszukiwaniu
-// const PURPLE = '#7700ffff'
-// const RED = '#cc0505'
-// const ORANGE = '#e28924'
-// const GREEN = '#78b95a'
+const colors = ['#cc0505','#ff8c21','#f7b62b','#b8cf3f','#78b95a', '#9b30ff'];
+const streetsByDay = {};
+const keys = {37: 1, 38: 1, 39: 1, 40: 1};
 
-const colors = [
-  '#cc0505',
-  '#ff8c21',
-  '#f7b62b',
-  '#b8cf3f',
-  '#78b95a',
-  '#9b30ff'
-];
-
-let keys = {37: 1, 38: 1, 39: 1, 40: 1};
 function preventDefault(e) {
   e.preventDefault();
 }
@@ -60,6 +45,31 @@ function unloadScrollBars() {
 unloadScrollBars();
 //disableScroll();
 
+const toggle = document.getElementById("toggle-panel")
+const panel = document.getElementById("side-panel")
+
+toggle.addEventListener("click", () => {
+    panel.classList.toggle("hidden")
+})
+
+let activeRow = null;
+
+document.querySelectorAll(".day-row").forEach(row => {
+    row.addEventListener("click", e => {
+        if (activeRow) activeRow.classList.remove("active")
+        row.classList.add("active")
+        activeRow = row
+        e.stopPropagation()
+    });
+});
+
+document.addEventListener("click", () => {
+    if (activeRow){
+        activeRow.classList.remove("active")
+        activeRow = null
+    }
+});
+
 let map;
 
 document.addEventListener('DOMContentLoaded', () => {
@@ -79,31 +89,41 @@ checkboxes.forEach(checkbox => {
     //show or hide on map
 })});
 
-const dayLists = document.querySelectorAll('.day-row');
+const dayLists = document.querySelectorAll("#trash-list-div .day-row");
 
 dayLists.forEach(daylist => {
+
   daylist.addEventListener('click', (e) => {
-    if (e.target.tagName === 'INPUT') return;
+
+    // jeśli kliknięcie było w checkbox / label, ignorujemy toggle
+    if (e.target.closest('input')) return;
+
+    const dayIndex = daylist.dataset.dayIndex; // jeśli go nie ma, możesz np. użyć index w forEach
+    const index = Array.from(dayLists).indexOf(daylist);
+
+    const streets = streetsByDay[index] || []; // streetsByDay to Twój obiekt z ulicami
 
     let list = daylist.querySelector('.street-list');
 
     if (!list) {
+      // tworzę listę tylko raz
       list = document.createElement('ul');
-      list.classList.add('street-list');
-      list.classList.toggle('active');
-      
-      let streets = ['dupa', 'dupa 2', 'dupa 3'];
+      list.classList.add('street-list', 'active');
+
       streets.forEach(street => {
         const li = document.createElement('li');
         li.textContent = street;
         list.appendChild(li);
       });
-      
+
       daylist.appendChild(list);
+
     } else {
+      // toggle pokaz/ukryj
       list.classList.toggle('active');
     }
   });
+
 });
 
 let form = document.querySelector('#street-input-form');
@@ -114,169 +134,21 @@ form.addEventListener('submit', (e) => {
   console.log(e.cancelable);
   e.preventDefault();
 
-  if(!input.value) {
-    return
-  }
+  if(!input.value) {return}
 
   let streetName = input.value;
   console.log(streetName);
-  addToMap(streetName, colors[5]);
-
+  addToMap(streetName, colors[5], true);
   
-  //checkDifferenceInCalendarDays(currentDate, testDate);
-
+  //addAllStreets();
   //fetchStreetsWithDates({street: streetName});
 });
 
-//delete later
-let geoJSON = {
-  "type": "FeatureCollection",
-  "generator": "overpass-turbo",
-  "copyright": "The data included in this document is from www.openstreetmap.org. The data is made available under ODbL.",
-  "timestamp": "2025-11-18T19:52:00Z",
-  "features": [
-    {
-      "type": "Feature",
-      "properties": {
-        "@id": "way/37094082",
-        "highway": "residential",
-        "highway:category:pl": "4",
-        "highway:owner": "ZDM Poznań",
-        "lit": "yes",
-        "maxspeed": "30",
-        "name": "Adama Asnyka",
-        "oneway": "yes",
-        "oneway:bicycle": "no",
-        "res": "residential",
-        "source:highway:category": "ZDM Poznań",
-        "source:highway:category:url": "http://www.zdm.poznan.pl/content/pliki/Spis_drog_publicznych_w_administarcji_ZDM_stan_na_luty_2016.pdf",
-        "source:maxspeed": "PL:zone30",
-        "surface": "asphalt"
-      },
-      "geometry": {
-        "type": "LineString",
-        "coordinates": [
-          [
-            16.905258,
-            52.4098024
-          ],
-          [
-            16.9052763,
-            52.4098595
-          ],
-          [
-            16.9056083,
-            52.4104666
-          ],
-          [
-            16.9058374,
-            52.4109133
-          ],
-          [
-            16.9058718,
-            52.4109759
-          ]
-        ]
-      },
-      "id": "way/37094082"
-    },
-    {
-      "type": "Feature",
-      "properties": {
-        "@id": "way/216489177",
-        "cycleway": "opposite",
-        "highway": "residential",
-        "highway:category:pl": "4",
-        "highway:owner": "ZDM Poznań",
-        "lit": "yes",
-        "maxspeed": "30",
-        "name": "Plac Adama Asnyka",
-        "oneway": "yes",
-        "oneway:bicycle": "no",
-        "short_name": "Plac Asnyka",
-        "source:highway:category": "ZDM Poznań",
-        "source:highway:category:url": "http://www.zdm.poznan.pl/content/pliki/Spis_drog_publicznych_w_administarcji_ZDM_stan_na_luty_2016.pdf",
-        "source:maxspeed": "PL:zone30",
-        "source:name": "e-MODGiK",
-        "surface": "asphalt",
-        "teryt:name": "Plac Asnyka"
-      },
-      "geometry": {
-        "type": "LineString",
-        "coordinates": [
-          [
-            16.9056083,
-            52.4104666
-          ],
-          [
-            16.9056404,
-            52.41046
-          ],
-          [
-            16.9061486,
-            52.4103581
-          ],
-          [
-            16.9062075,
-            52.4103532
-          ],
-          [
-            16.9062723,
-            52.4103622
-          ],
-          [
-            16.9063182,
-            52.4103793
-          ],
-          [
-            16.9063489,
-            52.4104033
-          ],
-          [
-            16.9065487,
-            52.4107713
-          ],
-          [
-            16.90656,
-            52.4107937
-          ],
-          [
-            16.9065801,
-            52.4108335
-          ]
-        ]
-      },
-      "id": "way/216489177"
-    }
-  ]
-};
-
-function getOverpassData(streetName) {
-  const query = `
-  [out:json][timeout:120];
-  area(3602989158)->.searchArea;
-  (
-    way["highway"]["name"~"${streetName}"](area.searchArea);
-  );
-  (._;>;);
-  out skel qt;
-  >;
-  `;
-
-  return fetch("https://overpass-api.de/api/interpreter", {
-      method: "POST",
-      headers: {
-          "Content-Type": "application/x-www-form-urlencoded",
-          "User-Agent": "poznan-thrash-app (contact: kacper.ptak00@gmail.com)"
-      },
-      body: "data=" + encodeURIComponent(query)
-  })
-  .then(res => res.json())
-  .then(data => osmtogeojson(data));
-};
-
 function loadMap() {
-    map = L.map('map').setView([52.40270467269032, 16.93801440270164], 13);
+    map = L.map('map', {
+      renderer: L.canvas(),
+      // smoothFactor: 2
+    }).setView([52.40270467269032, 16.93801440270164], 13);
 
     L.tileLayer('https://tile.openstreetmap.org/{z}/{x}/{y}.png', {
         maxZoom: 19,
@@ -284,27 +156,48 @@ function loadMap() {
     }).addTo(map);
 };
 
-function addToMap(streetName, color) {
-    getOverpassData(streetName)
-        .then(data => {L.geoJSON(data, {style: {'color': `${color}`}}).addTo(map);
-              console.log(data);
-              redirectToBounds(getEdgeCoordsOfStreet(data));
-            })
-        .catch(err => console.error(err));
+let layer;
+
+function addToMap(streetName, color, shouldRedirect = false) {
+  const data = getStreetData(streetName)
+
+  layer = L.geoJSON(data, {style: { color: color } }).addTo(map);
+  console.log(data);
+  //map.fitBounds(layer.getBounds());
+  const bounds = layer.getBounds();
+
+  setTimeout(() => {
+    map.flyToBounds(bounds, {
+      duration: 1.6
+    });
+  }, 200);
 };
 
-function redirectToBounds(coords) {
-  let bounds = new L.LatLngBounds(coords);
-  map.flyToBounds(bounds);
+let streetsJSONData;
+let streetIndex;
+
+async function loadStreetsJSONData() {
+  const res = await fetch("/data/streets_poznan.geojson");
+  streetsJSONData = await res.json();
+
+  streetIndex = buildStreetIndex(streetsJSONData);
 };
 
-function checkDifferenceInCalendarDays(currentDate, futureDate) {
-  fetch(`http://localhost:3000/api/diff?from=${currentDate}&to=${futureDate}`)
-  .then(res => res.json())
-  .then(data => console.log(data));
+function getStreetData(name) {
+  return streetsJSONData.features.filter(f =>
+    f.properties.name === name
+  );
 };
 
+await loadStreetsJSONData();
 
+//TODO: delete later
+async function addAllStreets() {
+  const streets = await fetch("/data/streets_poznan.geojson")
+  .then(r => r.json());
+
+  L.geoJSON(streets).addTo(map);
+};
 
 let currentDate = new Date();
 console.log(currentDate);
@@ -354,12 +247,16 @@ async function getFutureGarbageCollection() {
       const reduced = grouped[property].reduce(dataReducer ,{street_number: []});
       result.push(reduced);
     }
+    
+    streetsByDay[i] = result.map(item =>
+      toUpperCaseFirstLetter(item.street_name));
 
     for (const item of result) {
+      console.log(result);
       let streetName =  toUpperCaseFirstLetter(item.street_name);
       const color = colors[i];
       console.log(streetName + ' added to map')
-      //addToMap(streetName, color);
+      //addToMap(streetName, color, false);
     }
   }
 };
@@ -368,26 +265,30 @@ getFutureGarbageCollection();
 
 //fetch("https://overpass-api.de/api/status").then(res => console.log(res)) //api status
 
-function getEdgeCoordsOfStreet(street_object) {
-  const array = [];
-  street_object.features.forEach(street_object => array.push(street_object.geometry.coordinates));
-  const coordsArray = array.flat();
+function buildStreetIndex(geojson) {
+  const index = {};
 
-  const highestY = coordsArray.reduce((previous, current) => {
-    return current[0] > previous[0] ? current : previous;
-  });
+  geojson.features.forEach(feature => {
+    const name = feature.properties.name?.toLowerCase();
+    if (!name) return;
 
-  const lowestY = coordsArray.reduce((previous, current) => {
-    return current[0] < previous[0] ? current : previous;
+    if (!index[name]) {
+      index[name] = [];
+    }
+    index[name].push(feature);
   });
+  return index;
+};
 
-  const highestX = coordsArray.reduce((previous, current) => {
-    return current[1] > previous[1] ? current : previous;
-  });
+// to do autocomplete
+function searchStreet(prefix) {
+  prefix = prefix.toLowerCase();
 
-  const lowestX = coordsArray.reduce((previous, current) => {
-    return current[1] < previous[1] ? current : previous;
-  });
-  
-  return [[lowestX[1], lowestY[0]], [highestX[1], highestY[0]]];
+  return Object.keys(streetIndex)
+    .filter(name => name.toLowerCase().includes(prefix));
+    // .slice(0, 10);
+};
+
+function findStreet(name) {
+  return streetIndex[name.toLowerCase()] || [];
 }
