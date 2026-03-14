@@ -6,71 +6,75 @@
     <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" integrity="sha256-p4NxAoJBhIIN+hmNHrzRCf9tD/miZyoHS5obTRR9BMY=" crossorigin=""/>
     <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js" integrity="sha256-20nQCchB9co0qIjJZRGuk2/Z9VM+kNiyxNV1lvTlZBo=" crossorigin=""></script>
     <script src="https://cdn.jsdelivr.net/npm/osmtogeojson@3.0.0-beta.5/osmtogeojson.min.js"></script>
-    <script defer src="/js/script.js"></script>
+    <script defer type="module" src="/js/api/overpass.js"></script>
+    <script defer type="module" src="/js/script.js"></script>
     <link rel="stylesheet" type="text/css" href="/css/style.css">
     <link rel="icon" type="image/png" href="/images/icon.png">
     <title>Trash Web App</title>
 </head>
 <body>
-    <div id="side-panel">
-        <form id="street-input-form">
-            <div id="street-input-div">
-                <input type="text" id="street-input" name="text" placeholder="Wpisz szukaną ulicę:"/>
-            </div>
-            <button type="submit" id="street-input-button">Szukaj</button>
-        </form>
-        <div id="trash-list-div">
-            <div class="day-row">
-                <div class="checkbox-and-label-div">
-                    <label class="checkbox-label">
-                    <input type="checkbox" class="day-checkbox" name="next-day" checked />
-                    Jutro
-                    </label>
-                    <span>x ulice</span>
-                </div>
-            </div>
 
-            <div class="day-row">
-                <div class="checkbox-and-label-div">
-                    <label class="checkbox-label">
-                    <input type="checkbox" class="day-checkbox" name="in-2-days" checked />
-                    Pojutrze
-                    </label>
-                    <span>x ulice</span>
-                </div>
-            </div>
+<div id="map"></div>
 
-            <div class="day-row">
-                <div class="checkbox-and-label-div">
-                    <label class="checkbox-label">
-                    <input type="checkbox" class="day-checkbox" name="in-3-days" checked />
-                    Za 3 dni
-                    </label>
-                    <span>x ulice</span>
-                </div>
-            </div>
-
-            <div class="day-row">
-                <div class="checkbox-and-label-div">
-                    <label class="checkbox-label">
-                    <input type="checkbox" class="day-checkbox" name="in-4-days" checked />
-                    Za 4 dni
-                    </label>
-                    <span>x ulice</span>
-                </div>
-            </div>
-
-            <div class="day-row">
-                <div class="checkbox-and-label-div">
-                    <label class="checkbox-label">
-                    <input type="checkbox" class="day-checkbox" name="in-5-days" checked />
-                    Za 5 dni
-                    </label>
-                    <span>x ulice</span>
-                </div>
+<div id="side-panel">
+    <button id="toggle-panel">☰</button>
+    <form id="street-input-form">
+        <input type="text" id="street-input" placeholder="Wpisz szukaną ulicę">
+    </form>
+    
+    <div id="trash-list-div">
+        <div class="day-row">
+            <div class="checkbox-and-label-div">
+                <label class="checkbox-label">
+                <input type="checkbox" class="day-checkbox" name="in-1-days" checked />
+                Jutro
+                </label>
+                <span>x ulice</span>
             </div>
         </div>
+        <div class="day-row">
+            <div class="checkbox-and-label-div">
+                <label class="checkbox-label">
+                <input type="checkbox" class="day-checkbox" name="in-2-days" checked />
+                Pojutrze
+                </label>
+                <span>x ulice</span>
+            </div>
+        </div>
+
+        <div class="day-row">
+            <div class="checkbox-and-label-div">
+                <label class="checkbox-label">
+                <input type="checkbox" class="day-checkbox" name="in-3-days" checked />
+                Za 3 dni
+                </label>
+                <span>x ulice</span>
+            </div>
+        </div>
+
+        <div class="day-row">
+            <div class="checkbox-and-label-div">
+                <label class="checkbox-label">
+                <input type="checkbox" class="day-checkbox" name="in-4-days" checked />
+                Za 4 dni
+                </label>
+                <span>x ulice</span>
+            </div>
+        </div>
+
+        <div class="day-row">
+            <div class="checkbox-and-label-div">
+                <label class="checkbox-label">
+                <input type="checkbox" class="day-checkbox" name="in-5-days" checked />
+                Za 5 dni
+                </label>
+                <span>x ulice</span>
+            </div>
+        </div>
+
     </div>
-    <div id="map"></div>
+
+</div>
+
 </body>
 </html>
