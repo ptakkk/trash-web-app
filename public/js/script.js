@@ -52,25 +52,13 @@ toggle.addEventListener("click", () => {
     panel.classList.toggle("hidden")
 })
 
-let activeRow = null;
-
-document.querySelectorAll(".day-row").forEach(row => {
-    row.addEventListener("click", e => {
-        if (activeRow) activeRow.classList.remove("active")
-        row.classList.add("active")
-        activeRow = row
-        e.stopPropagation()
-    });
-});
-
-document.addEventListener("click", () => {
-    if (activeRow){
-        activeRow.classList.remove("active")
-        activeRow = null
-    }
-});
-
 let map;
+
+document.querySelector('#clear-button').addEventListener('click', () => {
+  layers.forEach(layer => layer.remove());
+  console.log('cleared');
+  
+})
 
 document.addEventListener('DOMContentLoaded', () => {
     loadMap();
@@ -82,6 +70,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
 const checkboxes = document.querySelectorAll('.day-checkbox');
 const checkboxLabels = document.querySelectorAll('.checkbox-label');
+const dayRows = document.querySelectorAll('.day-row');
 
 checkboxes.forEach(checkbox => {
   checkbox.addEventListener('change', (e) => {
@@ -89,42 +78,60 @@ checkboxes.forEach(checkbox => {
     //show or hide on map
 })});
 
-const dayLists = document.querySelectorAll("#trash-list-div .day-row");
+let activeRow = null;
 
-dayLists.forEach(daylist => {
+dayRows.forEach((row, index) => {
+  row.addEventListener('click', (e) => {
+    if (e.target.closest('input, .street-list-element')) return;
 
-  daylist.addEventListener('click', (e) => {
+    const list = row.querySelector('.street-list');
+    const streets = streetsByDay[index] || [];
 
-    // jeśli kliknięcie było w checkbox / label, ignorujemy toggle
-    if (e.target.closest('input')) return;
-
-    const dayIndex = daylist.dataset.dayIndex; // jeśli go nie ma, możesz np. użyć index w forEach
-    const index = Array.from(dayLists).indexOf(daylist);
-
-    const streets = streetsByDay[index] || []; // streetsByDay to Twój obiekt z ulicami
-
-    let list = daylist.querySelector('.street-list');
-
-    if (!list) {
-      // tworzę listę tylko raz
-      list = document.createElement('ul');
-      list.classList.add('street-list', 'active');
-
+    if (activeRow === row) {
+      row.classList.remove('active');
+      list.classList.remove('active');
+      activeRow = null;
+      return;
+    }
+    if (activeRow) {
+      activeRow.classList.remove('active');
+      activeRow.querySelector('.street-list')?.classList.remove('active');
+    }
+    if (list.children.length === 0) {
       streets.forEach(street => {
         const li = document.createElement('li');
+        li.classList.add('street-list-element');
         li.textContent = street;
         list.appendChild(li);
       });
 
-      daylist.appendChild(list);
-
-    } else {
-      // toggle pokaz/ukryj
-      list.classList.toggle('active');
     }
-  });
+    row.classList.add('active');
+    list.classList.add('active');
+    activeRow = row;
 
+  });
 });
+
+document.addEventListener('click', (e) => {
+  if (!e.target.closest('.day-row') && activeRow) {
+    activeRow.classList.remove('active');
+    activeRow.querySelector('.street-list')?.classList.remove('active');
+    activeRow = null;
+  }
+});
+
+
+function initStreetListeners() {
+  document.getElementById('trash-list-div').addEventListener('click', (e) => {
+    const li = e.target.closest('.street-list-element');
+    if (!li) return;
+    console.log(li.textContent);
+    addToMap(li.textContent, colors[5], true, false);
+  });
+}
+
+initStreetListeners();
 
 let form = document.querySelector('#street-input-form');
 let input = document.querySelector('#street-input');
@@ -138,7 +145,7 @@ form.addEventListener('submit', (e) => {
 
   let streetName = input.value;
   console.log(streetName);
-  addToMap(streetName, colors[5], true);
+  addToMap(streetName, colors[5], true, true);
   
   //addAllStreets();
   //fetchStreetsWithDates({street: streetName});
@@ -156,21 +163,29 @@ function loadMap() {
     }).addTo(map);
 };
 
-let layer;
+const layers = [];
+let layerGroup = L.layerGroup();
 
-function addToMap(streetName, color, shouldRedirect = false) {
+function addToMap(streetName, color, shouldRedirect = false, shouldAdd = false) {
   const data = getStreetData(streetName)
+  const layer = L.geoJSON(data, {style: { color: color } })
+  layerGroup.addLayer(layer);
+  layers.push(layer);
 
-  layer = L.geoJSON(data, {style: { color: color } }).addTo(map);
-  console.log(data);
+  if (shouldAdd) {
+    layer.addTo(map);
+  }
+  //console.log(data);
   //map.fitBounds(layer.getBounds());
   const bounds = layer.getBounds();
 
-  setTimeout(() => {
-    map.flyToBounds(bounds, {
-      duration: 1.6
-    });
-  }, 200);
+  if (shouldRedirect) {
+    setTimeout(() => {
+      map.flyToBounds(bounds, {
+        duration: 1.6
+      });
+    }, 200);
+  }
 };
 
 let streetsJSONData;
@@ -200,7 +215,7 @@ async function addAllStreets() {
 };
 
 let currentDate = new Date();
-console.log(currentDate);
+//console.log(currentDate);
 
 function checkNext5Days() {
   let nextDaysArray = [];
@@ -211,8 +226,6 @@ function checkNext5Days() {
   }
   return nextDaysArray;
 };
-
-//checkNext5Days();  //put this in a cron job later
 
 async function fetchStreetsWithDates({street, date}) {
   const params = new URLSearchParams();
@@ -228,14 +241,20 @@ function toUpperCaseFirstLetter(streetName) {
   return streetName.toLowerCase().split(' ').map(word => word.charAt(0).toUpperCase() + word.slice(1)).join(' ');
 };
 
+function formatStreetCount(count) {
+  if (count === 1) return '1 ulica';
+  if (count >= 2 && count <= 4) return `${count} ulice`;
+  return `${count} ulic`;
+}
+
 async function getFutureGarbageCollection() {
   let futureDaysArray = checkNext5Days();
 
-  for (let i = 0; i < futureDaysArray.length; i++) {
-    const day = futureDaysArray[i];
-    const isoDate = day.toISOString().split('T')[0];
-    const data = await fetchStreetsWithDates({date: isoDate});
-
+  const isoDates = futureDaysArray.map(day => day.toISOString().split('T')[0]);
+  const dataArray = await Promise.all(isoDates.map(day => fetchStreetsWithDates({date: day})));
+  
+  for (let i = 0; i < dataArray.length; i++) {
+    const data = dataArray[i];
     if (data.length == 0) continue;
     
     const grouped = Object.groupBy(data, ({street_name}) => street_name);
@@ -250,13 +269,17 @@ async function getFutureGarbageCollection() {
     
     streetsByDay[i] = result.map(item =>
       toUpperCaseFirstLetter(item.street_name));
+    
+    const count = result.length;
+    const span = dayRows[i].querySelector('.no-of-streets');
+    span.textContent = formatStreetCount(count);
 
     for (const item of result) {
-      console.log(result);
+      //console.log(result);
       let streetName =  toUpperCaseFirstLetter(item.street_name);
       const color = colors[i];
       console.log(streetName + ' added to map')
-      //addToMap(streetName, color, false);
+      addToMap(streetName, color, false, true);
     }
   }
 };

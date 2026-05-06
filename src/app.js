@@ -13,25 +13,7 @@ const port = 3000;
 
 app.use(express.static(join(__dirname, '../public')));
 
-
-
-app.get('/api/diff', (req, res) => {
-    const { from, to } = req.query;
-
-    if (!from || !to) {
-        return res.status(400).json({
-            error: 'missing parameters from or to'
-        });
-    }
-
-    const diff = diffDates(from, to);
-
-    res.json({
-        from,
-        to,
-        difference: diff
-    });
-});
+app.use("/data", express.static("data"));
 
 app.get('/api/streets', async (req, res) => {
   try {

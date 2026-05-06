@@ -42,3 +42,18 @@ export async function getOverpassData(streetName, retries = 3) {
 		return null;
 	}
 }
+
+//TODO: implement later
+function overpassToGeoJSON(data) {
+  return {
+    type: "FeatureCollection",
+    features: data.elements.map(el => ({
+      type: "Feature",
+      properties: el.tags,
+      geometry: {
+        type: "LineString",
+        coordinates: el.geometry.map(p => [p.lon, p.lat])
+      }
+    }))
+  };
+}
