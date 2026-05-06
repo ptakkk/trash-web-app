@@ -232,7 +232,7 @@ async function fetchStreetsWithDates({street, date}) {
   if (street) params.append('street', street);
   if (date) params.append('date', date);
 
-  const response = await fetch(`http://localhost:3000/api/streets?${params.toString()}`);
+  const response = await fetch(`/api/streets?${params.toString()}`);
   const data = await response.json();
   return data;
 };
