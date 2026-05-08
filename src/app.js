@@ -4,6 +4,9 @@ import { join, dirname } from 'path';
 import { fileURLToPath } from 'url';
 import { diffDates } from './utils/calculateDate.js';
 import { getStreetsWithDates } from './config/database.js';
+import dotenv from 'dotenv';
+
+dotenv.config();
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = dirname(__filename);
