@@ -21,8 +21,8 @@ app.get('/api/streets', async (req, res) => {
     const data = await getStreetsWithDates({street, date}, 10);
     res.json(data);
   } catch (err) {
-    console.log(err);
-    res.status(500).json({ error: 'database error'});
+    console.error("DB ERROR:", err);
+    return res.status(500).json({ error: err.message });
   }
 });
 
