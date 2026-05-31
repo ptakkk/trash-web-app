@@ -175,9 +175,10 @@ function addToMap(streetName, color, shouldRedirect = false, shouldAdd = false) 
   if (shouldAdd) {
     layer.addTo(map);
   }
-  //console.log(data);
+  console.log(data);
   //map.fitBounds(layer.getBounds());
   const bounds = layer.getBounds();
+  console.log(bounds);
 
   if (shouldRedirect) {
     setTimeout(() => {
