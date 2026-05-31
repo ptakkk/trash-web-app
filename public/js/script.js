@@ -197,6 +197,11 @@ async function loadStreetsJSONData() {
   streetsJSONData = await res.json();
 
   streetIndex = buildStreetIndex(streetsJSONData);
+
+  const uniqueStreetNames = [...new Set(
+    streetsJSONData.features.map(f => f.properties.name)
+  )];
+  console.log(uniqueStreetNames);
 };
 
 function getStreetData(name) {
@@ -204,6 +209,8 @@ function getStreetData(name) {
     f.properties.name === name
   );
 };
+
+
 
 await loadStreetsJSONData();
 
